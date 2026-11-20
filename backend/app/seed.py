@@ -1,7 +1,89 @@
 """示例数据：每个模块给几条不同状态的记录，方便起服务后立刻看到内容。"""
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from typing import Any
+
+
+def _iso(moment: datetime) -> str:
+    return moment.astimezone(timezone.utc).replace(microsecond=0).isoformat()
+
+
+_NOW = datetime.now(timezone.utc)
+
+# 缓存来源索引示例：DATA-0001 上一截面 SEC-2026-11-19 有两片不重叠切片且旧批均已过期，
+# 新批 SEC-2026-11-20 目前只有 SLICE-A 一片有效切片，SLICE-B 旧数据已过期、新批未送达，
+# 用来演示「先交付有效切片并显式计入缺批」的口径。
+_CACHE_SOURCE_ROWS: list[dict[str, Any]] = [
+    {
+        "id": 1,
+        "status": "已过期",
+        "pending": False,
+        "abnormal": False,
+        "索引编号": "SRCI-0001",
+        "源编号": "DATA-0001",
+        "取数编号": "FETCH-0001-A1",
+        "来源批次": "BATCH-20261119",
+        "取数截面": "SEC-2026-11-19",
+        "切片编号": "SLICE-A",
+        "读数": "100",
+        "数据内容": "SLICE-A 行1-50（上一批交付）",
+        "登记时间": _iso(_NOW - timedelta(hours=26)),
+        "到期时间": _iso(_NOW - timedelta(hours=2)),
+        "补报次数": 0,
+    },
+    {
+        "id": 2,
+        "status": "已过期",
+        "pending": False,
+        "abnormal": False,
+        "索引编号": "SRCI-0002",
+        "源编号": "DATA-0001",
+        "取数编号": "FETCH-0001-B1",
+        "来源批次": "BATCH-20261119",
+        "取数截面": "SEC-2026-11-19",
+        "切片编号": "SLICE-B",
+        "读数": "200",
+        "数据内容": "SLICE-B 行51-100（上一批交付）",
+        "登记时间": _iso(_NOW - timedelta(hours=26)),
+        "到期时间": _iso(_NOW - timedelta(hours=2)),
+        "补报次数": 0,
+    },
+    {
+        "id": 3,
+        "status": "有效中",
+        "pending": True,
+        "abnormal": False,
+        "索引编号": "SRCI-0003",
+        "源编号": "DATA-0001",
+        "取数编号": "FETCH-0001-A2",
+        "来源批次": "BATCH-20261120",
+        "取数截面": "SEC-2026-11-20",
+        "切片编号": "SLICE-A",
+        "读数": "150",
+        "数据内容": "SLICE-A 行1-50（最新批交付）",
+        "登记时间": _iso(_NOW - timedelta(hours=1)),
+        "到期时间": _iso(_NOW + timedelta(hours=23)),
+        "补报次数": 0,
+    },
+    {
+        "id": 4,
+        "status": "有效中",
+        "pending": True,
+        "abnormal": False,
+        "索引编号": "SRCI-0004",
+        "源编号": "DATA-0002",
+        "取数编号": "FETCH-0002-A1",
+        "来源批次": "BATCH-20261120",
+        "取数截面": "SEC-2026-11-20",
+        "切片编号": "SLICE-A",
+        "读数": "88",
+        "数据内容": "SLICE-A 行1-20（最新批交付）",
+        "登记时间": _iso(_NOW - timedelta(hours=1)),
+        "到期时间": _iso(_NOW + timedelta(hours=23)),
+        "补报次数": 0,
+    },
+]
 
 SEED_ROWS: dict[str, list[dict[str, Any]]] = {
     "metric_def": [{'id': 1,
@@ -472,6 +554,7 @@ SEED_ROWS: dict[str, list[dict[str, Any]]] = {
   '命中统计': '缓存管理样例3',
   '淘汰策略': '缓存管理样例3',
   '缓存状态': '缓存管理样例3'}],
+    "cache_source": _CACHE_SOURCE_ROWS,
     "pipeline": [{'id': 1,
   'status': '草稿',
   'pending': True,

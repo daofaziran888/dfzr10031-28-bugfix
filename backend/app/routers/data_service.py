@@ -48,6 +48,17 @@ def get_entry(entry_id: int) -> dict:
     return entry
 
 
+@router.get("/{entry_id}/cache_sections", response_model=dict)
+def cache_sections(entry_id: int, page: int = 1, size: int = 20) -> dict:
+    """缓存来源评估：按缓存来源索引筛出可服务截面，计算命中与缺批数量，并定位上一页末行来源。"""
+    if size > 200:
+        raise HTTPException(status_code=400, detail="每页最多 200 条，请缩小分页范围")
+    result, message = service.cache_assessment(entry_id, page=page, size=size)
+    if result is None:
+        raise HTTPException(status_code=404, detail=message)
+    return result
+
+
 @router.post("", response_model=ActionResult)
 def create_entry(payload: EntryPayload) -> ActionResult:
     """登记一条数据服务，缺字段时说明原因而不是静默丢弃。"""

@@ -185,6 +185,18 @@ class CacheEntry(BaseModel):
     field_6: str | None = None  # 淘汰策略
     field_7: str | None = None  # 缓存状态
 
+class CacheSourceEntry(BaseModel):
+    """缓存来源索引明细结构。"""
+
+    field_0: str | None = None  # 索引编号
+    field_1: str | None = None  # 源编号
+    field_2: str | None = None  # 取数编号
+    field_3: str | None = None  # 来源批次
+    field_4: str | None = None  # 取数截面
+    field_5: str | None = None  # 切片编号
+    field_6: str | None = None  # 读数
+    field_7: str | None = None  # 到期时间
+
 class PipelineEntry(BaseModel):
     """分析节点明细结构。"""
 

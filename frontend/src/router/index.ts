@@ -14,6 +14,7 @@ const UserGroup = () => import('@/views/user_group/index.vue')
 const Snapshot = () => import('@/views/snapshot/index.vue')
 const Scheduler = () => import('@/views/scheduler/index.vue')
 const Cache = () => import('@/views/cache/index.vue')
+const CacheSource = () => import('@/views/cache_source/index.vue')
 const Pipeline = () => import('@/views/pipeline/index.vue')
 const Model = () => import('@/views/model/index.vue')
 const DataMart = () => import('@/views/data_mart/index.vue')
@@ -37,6 +38,7 @@ const router = createRouter({
     { path: '/snapshot', name: 'snapshot', component: Snapshot },
     { path: '/scheduler', name: 'scheduler', component: Scheduler },
     { path: '/cache', name: 'cache', component: Cache },
+    { path: '/cache_source', name: 'cache_source', component: CacheSource },
     { path: '/pipeline', name: 'pipeline', component: Pipeline },
     { path: '/model', name: 'model', component: Model },
     { path: '/data_mart', name: 'data_mart', component: DataMart },

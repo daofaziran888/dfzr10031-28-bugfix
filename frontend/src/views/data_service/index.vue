@@ -47,6 +47,7 @@
             >
               {{ action }}
             </button>
+            <button class="link" type="button" @click="assessCache(row)">缓存评估</button>
           </td>
         </tr>
         <tr v-if="!rows.length">
@@ -80,6 +81,43 @@
         </div>
       </div>
     </Teleport>
+
+    <Teleport to="body">
+      <div v-if="assessment" class="modal-overlay" @click.self="assessment = null">
+        <div class="modal-card">
+          <header class="modal-head">
+            <h3>缓存来源评估 · {{ assessment['服务编号'] }}</h3>
+            <button class="btn ghost" type="button" @click="assessment = null">&times;</button>
+          </header>
+          <div class="modal-body">
+            <p>交付策略：{{ assessment['交付策略'] }}</p>
+            <p>当前截面：{{ assessment['当前截面'] ?? '—' }}　上一截面：{{ assessment['上一截面'] ?? '—' }}</p>
+            <p>可服务截面：{{ (assessment['可服务截面'] || []).join('、') || '—' }}</p>
+            <p>有效切片 {{ assessment['有效切片数'] }} 片 · 命中 {{ assessment['命中数'] }} · 缺批 {{ assessment['缺批数'] }}</p>
+            <div v-if="assessment['缺批明细'] && assessment['缺批明细'].length">
+              <h4>缺批明细</h4>
+              <ul>
+                <li v-for="item in assessment['缺批明细']" :key="item['切片编号']">
+                  {{ item['切片编号'] }}：{{ item['原因'] }}（最近来源批次 {{ item['最近来源批次'] ?? '—' }}）
+                </li>
+              </ul>
+            </div>
+            <div v-if="assessment['上一页末行来源']">
+              <h4>上一页末行来源</h4>
+              <p>
+                取数编号 {{ assessment['上一页末行来源']['取数编号'] }} · 批次 {{ assessment['上一页末行来源']['来源批次'] }}
+                · 截面 {{ assessment['上一页末行来源']['取数截面'] }} · 切片 {{ assessment['上一页末行来源']['切片编号'] }}
+              </p>
+              <p>当时结果：读数 {{ assessment['上一页末行来源']['当时结果']['读数'] }}（{{ assessment['上一页末行来源']['当时结果']['登记时间'] }}）</p>
+            </div>
+            <p v-else>{{ assessment['定位说明'] }}</p>
+          </div>
+          <footer class="modal-foot">
+            <button class="btn primary" type="button" @click="assessment = null">关闭</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
   </section>
 </template>
 
@@ -103,6 +141,21 @@ const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
 const showCreateModal = ref(false)
 const createFields = ref<Record<string, string>>({})
+const assessment = ref<Record<string, any> | null>(null)
+
+async function assessCache(row: Row) {
+  errorMessage.value = ''
+  try {
+    const response = await request(`${ENDPOINT}/${row.id}/cache_sections`)
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.detail || '缓存来源评估读取失败')
+    }
+    assessment.value = data
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '缓存来源评估读取失败'
+  }
+}
 
 function updateStats() {
   const data = rows.value
